@@ -1,0 +1,4 @@
+history
+sum_of_salary
+execute_script script_a.txt
+head

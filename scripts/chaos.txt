@@ -1,0 +1,34 @@
+info
+help argumento_invalido
+show
+remove_by_id
+remove_by_id NO_SOY_UN_NUMERO
+remove_by_id -999999999
+sum_of_salary argumento_basura
+print_field_descending_salary
+execute_script archivo_que_no_existe_en_ningun_lado.txt
+remove_all_by_position INVENTADO
+
+add
+Hacker_Perfecto
+150
+300.5
+75000
+ENGINEER
+FIRED
+Chaos_Corporation
+1500000.0
+42
+
+execute_script chaos.txt
+
+add
+Hacker_Malicioso
+-50000
+-99999
+-100
+CEO_INVENTADO
+ESTADO_FALSO
+Empresa_Fantasma
+-1000.0
+-50
