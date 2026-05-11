@@ -1,6 +1,7 @@
 package server.repository;
 
 import common.model.*;
+import common.network.Response;
 import common.network.Result;
 import common.repository.WorkerRepository;
 import server.multithread.UserContext;
@@ -28,25 +29,25 @@ public class DataBaseWorker implements WorkerRepository {
 
 
 //JOOQ
-@Override
-public Result<Boolean> add(Worker worker) {
-    String sql = "INSERT INTO worker (name, coordinate_x, coordinate_y, creation_date, salary, position, status, " +
+    @Override
+    public Result<Boolean> add(Worker worker) {
+        String sql = "INSERT INTO worker (name, coordinate_x, coordinate_y, creation_date, salary, position, status, " +
             "org_full_name, org_annual_turnover, org_employees_count, id_user) " +
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, (SELECT id FROM users WHERE name = ?)) RETURNING id";
-    try (Connection connection = databaseConnection.getConnection();
-         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        try (Connection connection = databaseConnection.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
-        preparedStatement.setString(1, worker.getName());
-        preparedStatement.setFloat(2, worker.getCoordinates().getX());
-        preparedStatement.setDouble(3, worker.getCoordinates().getY());
-        preparedStatement.setTimestamp(4, Timestamp.from(worker.getCreationDate().toInstant()));
-        preparedStatement.setLong(5, worker.getSalary());
-        preparedStatement.setString(6, worker.getPosition().name());
-        preparedStatement.setString(7, worker.getStatus().name());
-        preparedStatement.setString(8, worker.getOrganization().getFullName());
-        preparedStatement.setFloat(9, worker.getOrganization().getAnnualTurnover());
-        preparedStatement.setInt(10, worker.getOrganization().getEmployeesCount());
-        preparedStatement.setString(11, worker.getCreatorName());
+            preparedStatement.setString(1, worker.getName());
+            preparedStatement.setFloat(2, worker.getCoordinates().getX());
+            preparedStatement.setDouble(3, worker.getCoordinates().getY());
+            preparedStatement.setTimestamp(4, Timestamp.from(worker.getCreationDate().toInstant()));
+            preparedStatement.setLong(5, worker.getSalary());
+            preparedStatement.setString(6, worker.getPosition().name());
+            preparedStatement.setString(7, worker.getStatus().name());
+            preparedStatement.setString(8, worker.getOrganization().getFullName());
+            preparedStatement.setFloat(9, worker.getOrganization().getAnnualTurnover());
+            preparedStatement.setInt(10, worker.getOrganization().getEmployeesCount());
+            preparedStatement.setString(11, worker.getCreatorName());
 
         try (ResultSet resultSet = preparedStatement.executeQuery()) {
             if (resultSet.next()) {
@@ -65,8 +66,8 @@ public Result<Boolean> add(Worker worker) {
 
 
 
-    public void load(){
-        String requestSql = "SELECT * FROM worker W JOIN users U ON W.id_user = U.id";
+public void load(){
+        String requestSql = "SELECT U.name AS name_user ,W.* FROM worker W JOIN users U ON W.id_user = U.id";
         try (Connection connection =  databaseConnection.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(requestSql);
              ResultSet resultSet = preparedStatement.executeQuery()){
@@ -94,7 +95,7 @@ public Result<Boolean> add(Worker worker) {
                 long salary = resultSet.getLong("salary");
                 String position = resultSet.getString("position");
                 String status = resultSet.getString("status");
-                String creator = resultSet.getString("id_user");
+                String creator = resultSet.getString("name_user");
 
                 worker.setId(id);
                 worker.setName(name);
@@ -116,8 +117,6 @@ public Result<Boolean> add(Worker worker) {
 
         @Override
     public Result<List<Worker>> getAllWorkers() {
-            if(localWorkerRepository.isCollectionEmpty())
-                load();
             return localWorkerRepository.getAllWorkers();
         }
 
@@ -125,104 +124,190 @@ public Result<Boolean> add(Worker worker) {
 
 
     @Override
-    public Result<Integer> clear() {
+    public Result<Void> clear() {
         String nameUser = UserContext.get().name();
         String clearSQL = "DELETE FROM worker WHERE id_user = (SELECT id FROM users WHERE name = ?)";
         try(Connection connection = databaseConnection.getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(clearSQL)){
 
             preparedStatement.setString(1, nameUser);
-            int rowsAfe = preparedStatement.executeUpdate();
-            return Result.success(rowsAfe);
-
+            int rowsDeleted = preparedStatement.executeUpdate();
+            if(rowsDeleted > 0)
+                localWorkerRepository.clear();
+            return Result.success();
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "No fue posible ejecutar la consulta CLEAR. " + e.getMessage());
-            return Result.failure(e.getMessage());
+            return Result.failure("No fue posible ejecutar la consulta 'clear`'");
         }
-
     }
+
+
 
     @Override
     public Result<Boolean> existById(long id) {
         String nameUser = UserContext.get().name();
-        String requesSql = "SELECT EXISTS(SELECT 1 FROM worker WHERE id = ?)";
+        String requesSql = "SELECT EXISTS(SELECT 1 FROM worker" +
+                            " WHERE id = ? AND id_user = " +
+                            "(SELECT id FROM users WHERE name = ?))";
         try(Connection connection = databaseConnection.getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(requesSql)){
 
-            preparedStatement.setString(1, nameUser);
+            preparedStatement.setLong(1, id);
+            preparedStatement.setString(2, nameUser);
             ResultSet resultSet = preparedStatement.executeQuery();
-            return Result.success(resultSet.next());
 
+            if(resultSet.next())
+                return Result.success(resultSet.getBoolean(1));
+
+            return Result.success(false);
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "No fue posible ejecutar la consulta CLEAR. " + e.getMessage());
-            return Result.failure(e.getMessage());
+            logger.log(Level.SEVERE, "No fue posible ejecutar la consulta exist_by_id. " + e.getMessage());
+            return Result.failure("No fue posible ejecutar la consulta");
         }
     }
+
+
 
     @Override
     public Result<Void> updateWorkerById(Worker workerUpdated) {
         String nameUser = UserContext.get().name();
-        String requestSql = "UPDATE  worker " +
-                            "SET name = ?," +
-                            "coordinate_x = ?," +
-                            "coordinate_y = ?," +
-                            "salary = ?," +
-                            "position = ?," +
-                            "status = ?," +
-                            "org_full_name = ?," +
-                            "org_annual_turnover = ?," +
-                            "org_employees = ?"+
-                             " FROM worker WHERE id_user = (SELECT id FROM users WHERE name = ?)";
 
-        //name, coordinate_x, coordinate_y, salary, position, status, org_full_name, org_annual_turnover, org_employees
+        String requestSql = "UPDATE worker " +
+                "SET name = ?, " +
+                "coordinate_x = ?, " +
+                "coordinate_y = ?, " +
+                "salary = ?, " +
+                "position = ?, " +
+                "status = ?, " +
+                "org_full_name = ?, " +
+                "org_annual_turnover = ?, " +
+                "org_employees_count = ? " +
+                "WHERE id = ? AND id_user = (SELECT id FROM users WHERE name = ?)";
 
-        try(Connection connection = databaseConnection.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(requestSql)){
-            preparedStatement.setString(1, nameUser);
-            preparedStatement.executeUpdate();
-            return Result.success();
+        try (Connection connection = databaseConnection.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(requestSql)) {
+
+            preparedStatement.setString(1, workerUpdated.getName());
+            preparedStatement.setFloat(2, workerUpdated.getCoordinates().getX());
+            preparedStatement.setDouble(3, workerUpdated.getCoordinates().getY());
+            preparedStatement.setLong(4, workerUpdated.getSalary());
+            preparedStatement.setString(5, workerUpdated.getPosition().toString());
+            preparedStatement.setString(6, workerUpdated.getStatus().toString());
+            preparedStatement.setString(7, workerUpdated.getOrganization().getFullName());
+            preparedStatement.setFloat(8, workerUpdated.getOrganization().getAnnualTurnover());
+            preparedStatement.setInt(9, workerUpdated.getOrganization().getEmployeesCount());
+
+            preparedStatement.setLong(10, workerUpdated.getId());
+            preparedStatement.setString(11, nameUser);
+
+            int rowUpdated = preparedStatement.executeUpdate();
+
+            if (rowUpdated > 0) {
+                localWorkerRepository.updateWorkerById(workerUpdated);
+                return Result.success();
+            } else {
+                return Result.failure("No se pudo actualizar. El trabajador no existe o no te pertenece.");
+            }
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "No fue posible ejecutar la consulta CLEAR. " + e.getMessage());
-            return Result.failure(e.getMessage());
+            logger.log(Level.SEVERE, "No fue posible ejecutar la consulta update_by_id. " + e.getMessage());
+            return Result.failure("No fue posible ejecutar la consulta update_by_id.");
         }
     }
 
 
 
 
-//
-//    @Override
-//    public Result<Boolean> removeById(long id) {
-//        return null;
-//    }
-//
-//    @Override
-//    public Result<Worker> getHead() {
-//        return null;
-//    }
-//
-//    @Override
-//    public Result<Integer> removeAllByPosition(Position position) {
-//        return null;
-//    }
-//
-//    @Override
-//    public Result<Long> sumOfSalary() {
-//        return null;
-//    }
-//
-//    @Override
-//    public Result<List<Long>> getDescendingSalaries() {
-//        return null;
-//    }
-//
-//    @Override
-//    public Result<Worker> removeHead() {
-//        return null;
-//    }
-//
-//    @Override
-//    public Result<String> getInfo() {
-//        return null;
-//    }
+    @Override
+    public synchronized Result<Boolean> removeById(long id) {
+        String nameUser = UserContext.get().name();
+        String requestSql = "DELETE FROM worker WHERE id = ? AND id_user = (SELECT id FROM users WHERE  name = ?)";
+
+        try(Connection connection = databaseConnection.getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement(requestSql)){
+            preparedStatement.setLong(1, id);
+            preparedStatement.setString(2, nameUser);
+            int rowDeleted = preparedStatement.executeUpdate();
+            if(rowDeleted > 0){
+                localWorkerRepository.removeById(id);
+                return Result.success(true);
+            }
+            return Result.success(false);
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE,e.getMessage());
+            return Result.failure("No fue posible ejecutar la consulta 'remove_by_id'.");
+        }
+    }
+
+
+
+    @Override
+    public synchronized Result<Worker> getHead() {
+        return localWorkerRepository.getHead();
+    }
+
+
+
+    @Override
+    public Result<Integer> removeAllByPosition(Position position) {
+        String nameUser = UserContext.get().name();
+        String requestSql = "DELETE FROM worker WHERE position = ? AND id_user = (SELECT id FROM users WHERE name = ?)";
+        try(Connection connection = databaseConnection.getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement(requestSql)){
+            preparedStatement.setString(1, position.name());
+            preparedStatement.setString(2, nameUser);
+            int rowsDeleted = preparedStatement.executeUpdate();
+            if(rowsDeleted > 0)
+                localWorkerRepository.removeAllByPosition(position);
+            return Result.success(rowsDeleted);
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE,e.getMessage());
+            return Result.failure("No se pudo llevar a cabo la tarea 'remove_all_by_position'");
+        }
+    }
+
+
+
+    @Override
+    public Result<Long> sumOfSalary() {
+        return localWorkerRepository.sumOfSalary();
+    }
+
+
+
+    @Override
+    public Result<List<Long>> getDescendingSalaries() {
+        return localWorkerRepository.getDescendingSalaries();
+    }
+
+
+
+    @Override
+    public Result<Worker> removeHead() {
+        String nameUser = UserContext.get().name();
+        String requestSql = "DELETE FROM worker" +
+                "WHERE id_user = " +
+                "(SELECT id FROM user WHERE name = ?) " +
+                "ORDER BY name ASC LIMIT 1 " +
+                "RETUTNING worker";
+        try (Connection connection = databaseConnection.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(requestSql)) {
+            preparedStatement.setString(1, nameUser);
+            int rowsDeleted = preparedStatement.executeUpdate();
+            if (rowsDeleted > 0)
+                return localWorkerRepository.removeHead();
+            return Result.failure("No tienes workers registrados");
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "No fue posible ejecutar la consulta 'remove_by_position'. " + e.getMessage());
+            return Result.failure(e.getMessage());
+        }
+    }
+
+
+
+    @Override
+    public Result<String> getInfo() {
+        return localWorkerRepository.getInfo();
+    }
+
+
 }

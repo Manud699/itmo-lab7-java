@@ -11,7 +11,6 @@ public class RunnerAppServer {
         this.networkServer = networkServer;
     }
     public void start(){
-
-            networkServer.start();
+        networkServer.start();
     }
 }

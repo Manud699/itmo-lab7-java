@@ -32,11 +32,8 @@ public class UpdateByIdCommand extends AbstractCommand{
         if(optionalWorker.isEmpty()){
             return new Response(Result.failure("The updated worker data was not received"));
         }
-        Optional<Long> optionalId = NumberParseSafe.parse(request.getCommandArgument(),Long::parseLong);
-        if(optionalId.isEmpty())
-            return new Response(Result.failure("No se ha recibido el id del Worker"));
 
-        Result<Boolean> existById = workerRepository.existById(optionalId.get());
+        Result<Boolean> existById = workerRepository.existById(optionalWorker.get().getId());
         if(!existById.getValue())
             return new Response(Result.failure("Worker id not existent"));
 

@@ -10,34 +10,26 @@ import server.repository.LocalWorkerRepository;
 import java.util.List;
 
 
-/**
- * Command: ShowCommand
- * Command description: Displays all elements of the collection.
- */
+
 public class ShowCommand extends AbstractCommand  {
 
-    private final WorkerRepository localWorkerRepository;
+    private final WorkerRepository workerRepository;
 
-    /**
-     * Constructor for the ShowCommand class.
-     * @param localWorkerRepository the repository for managing workers
-     */
-    public ShowCommand(WorkerRepository localWorkerRepository) {
+
+    public ShowCommand(WorkerRepository workerRepository) {
         super("show", "Displays all elements of the collection");
-        this.localWorkerRepository = localWorkerRepository;
+        this.workerRepository = workerRepository;
     } 
 
 
-    /**     
-     *  Executes the show command.
-     */
+
     @Override
     public Response execute(Request request) {
         Response error = validateNoArgument(request);
         if(error != null){
             return error;
         }
-        Result<List<Worker>> result = localWorkerRepository.getAllWorkers();
+        Result<List<Worker>> result = workerRepository.getAllWorkers();
         return new Response(result);
     }
 

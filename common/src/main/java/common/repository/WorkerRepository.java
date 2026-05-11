@@ -12,25 +12,27 @@ public interface WorkerRepository {
 
     Result<List<Worker>> getAllWorkers();
 
-    Result<Integer> clear();
+    Result<Void> clear();
 
     Result<Boolean> existById(long id);
 
     Result<Void> updateWorkerById(Worker workerUpdated);
-//
-//    Result<Boolean> removeById(long id);
-//
-//    Result<Worker> getHead();
-//
-//    Result<Integer> removeAllByPosition(Position position);
-//
-//    Result<Long> sumOfSalary();
-//
-//    Result<List<Long>> getDescendingSalaries();
-//
-//    Result<Worker> removeHead();
-//
-//    Result<String> getInfo();
+
+    Result<Boolean> removeById(long id);
+
+    Result<Worker> getHead();
+
+    Result<Integer> removeAllByPosition(Position position);
+
+    Result<Long> sumOfSalary();
+
+    Result<List<Long>> getDescendingSalaries();
+
+    Result<Worker> removeHead();
+
+    Result<String> getInfo();
+
+    void load();
 
 
 }

@@ -22,18 +22,18 @@ public interface TableDisplayable {
     int MAX_ORG_NAME_LEN = 9;
     int MAX_TURNOVER_LEN = 5;
     int MAX_EMP_LEN = 5;
+    int MAX_OWNER_LEN = 10;
 
 
-    String ROW_FORMAT = "%-4d | %-10s | %-15s | %-16s | %-8s | %-9s | %-12s | %-9s | %-6s | %-5s";
-    String HEADER_FORMAT = "%-4s | %-10s | %-15s | %-16s | %-8s | %-9s | %-12s | %-9s | %-6s | %-5s";
-
+    String ROW_FORMAT = "%-4d | %-10s | %-15s | %-16s | %-8s | %-9s | %-12s | %-9s | %-6s | %-5s | %-10s";
+    String HEADER_FORMAT = "%-4s | %-10s | %-15s | %-16s | %-8s | %-9s | %-12s | %-9s | %-6s | %-5s | %-10s";
 
     /**
      * Prints a separator line in the console to visually separate different sections of the table.
      * @param console the console to print the separator to
      */
     default void printSeparator(Console console) {
-        console.println("-".repeat(120));
+        console.println("-".repeat(135));
     }
 
 
@@ -43,7 +43,7 @@ public interface TableDisplayable {
      */
     default void printHeader(Console console) {
         console.println(String.format(HEADER_FORMAT,
-                "ID", "NAME", "COORD[X-Y]", "CREATION DATE", "SALARY", "POSITION", "STATUS", "ORG. NAME", "TURN.O", "EMP."));
+                "ID", "NAME", "COORD[X-Y]", "CREATION DATE", "SALARY", "POSITION", "STATUS", "ORG. NAME", "TURN.O", "EMP.","OWNER"));
     }
 
     /**
@@ -126,8 +126,15 @@ public interface TableDisplayable {
             orgEmp = orgEmp.substring(0, 2);
         }
 
+        String safeOwner = worker.getCreatorName();
+        if (safeOwner == null) safeOwner = "UNKNOWN";
+        if (safeOwner.length() > MAX_OWNER_LEN) {
+            safeOwner = safeOwner.substring(0, MAX_OWNER_LEN - 1) + ".";
+        }
+
+
         return String.format(Locale.US, ROW_FORMAT,
                 worker.getId(), safeName, coordsStr, dateStr, salaryStr,
-                safePos, safeStatus, orgName, orgTurnover, orgEmp);
+                safePos, safeStatus, orgName, orgTurnover, orgEmp, safeOwner);
     }
 }

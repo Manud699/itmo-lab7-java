@@ -5,11 +5,6 @@ import common.repository.WorkerRepository;
 
 
 
-
-/**
- * Command: ClearCommand
- * Command description: Clears all elements from the collection.
- */
 public class ClearCommand extends AbstractCommand {
 
     private final WorkerRepository workerRepository;
@@ -19,9 +14,8 @@ public class ClearCommand extends AbstractCommand {
         this.workerRepository = workerRepository;
     }
 
-    /**
-     * Executes the clear command.
-     */
+
+
     @Override
     public Response execute(Request request) {
         Response response = validateNoArgument(request);
@@ -30,5 +24,4 @@ public class ClearCommand extends AbstractCommand {
         }
         return new Response(workerRepository.clear());
     }
-
 }

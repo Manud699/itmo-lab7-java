@@ -7,10 +7,7 @@ import common.network.Result;
 import common.repository.WorkerRepository;
 import common.util.NumberParseSafe;
 
-/**
- * Command: UpdateByIdCommand
- * Command description: Updates a worker by ID.
- */
+
 public class UpdateByIdCommand extends AbstractCommand {
 
     private final WorkerRepository workerRepository;
@@ -47,7 +44,7 @@ public class UpdateByIdCommand extends AbstractCommand {
         }
 
         if(!existResult.getValue()){
-            console.printError("Worker ID not found in the collection '" + argms+ "'" );
+            console.printError("Worker ID not found in the collection '" + argms+ "' or you don't have permission to modify it." );
             return 4;
         }
 

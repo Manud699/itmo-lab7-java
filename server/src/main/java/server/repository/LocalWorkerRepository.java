@@ -1,25 +1,19 @@
 package server.repository;
 
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
+import common.model.Position;
 import common.model.Worker;
 import common.network.Result;
 import common.repository.WorkerRepository;
-import server.storage.FormLoad;
-import server.storage.FormSave;
-
-import static common.model.WorkerIdGenerator.*;
+import server.multithread.UserContext;
 
 
-/**
- * WorkerRepository is responsible for CRUD operations on the collection of Worker objects.
- */
 public class LocalWorkerRepository implements WorkerRepository {
     private final Deque<Worker> workers;
-    private final ZonedDateTime creationDate; 
-    private  FormSave formSave;
-    private  FormLoad formLoad; 
+    private final ZonedDateTime creationDate;
 
 
 
@@ -31,44 +25,44 @@ public class LocalWorkerRepository implements WorkerRepository {
 
 
     @Override
-    public Result<Boolean> add(Worker worker) {
+    public synchronized Result<Boolean> add(Worker worker) {
         boolean isAdded = workers.add(worker);
             return Result.success(isAdded);
     }
 
 
 
-//    @Override
-//    public Result<Void> updateWorkerById(Worker workerUpdated) {
-//        var optionalWorker = workers
-//                .stream()
-//                .filter(worker -> worker.getId() == workerUpdated.getId())
-//                .findFirst();
-//        var oldWorker = optionalWorker.get();
-//        oldWorker.setName(workerUpdated.getName());
-//        oldWorker.setCoordinates(workerUpdated.getCoordinates());
-//        oldWorker.setSalary(workerUpdated.getSalary());
-//        oldWorker.setPosition(workerUpdated.getPosition());
-//        oldWorker.setStatus(oldWorker.getStatus());
-//        oldWorker.setOrganization(oldWorker.getOrganization());
-//        return Result.success();
-//    }
+    @Override
+    public synchronized Result<Void> updateWorkerById(Worker workerUpdated) {
+        var optionalWorker = workers
+                .stream()
+                .filter(worker -> worker.getId() == workerUpdated.getId())
+                .findFirst();
+        var oldWorker = optionalWorker.get();
+        oldWorker.setName(workerUpdated.getName());
+        oldWorker.setCoordinates(workerUpdated.getCoordinates());
+        oldWorker.setSalary(workerUpdated.getSalary());
+        oldWorker.setPosition(workerUpdated.getPosition());
+        oldWorker.setStatus(oldWorker.getStatus());
+        oldWorker.setOrganization(oldWorker.getOrganization());
+        return Result.success();
+    }
 
 
 
-    public Deque<Worker> getWorkers() {
+    public synchronized Deque<Worker> getWorkers() {
         return workers;
     }
 
 
 
-    public ZonedDateTime getCreationDate() {
+    public synchronized ZonedDateTime getCreationDate() {
         return creationDate; 
     } 
 
 
 
-    public List<Worker> getWorkersSortedByName() {
+    public synchronized List<Worker> getWorkersSortedByName() {
         return workers
                 .stream()
                 .sorted(Comparator.comparing(Worker::getName))
@@ -78,139 +72,124 @@ public class LocalWorkerRepository implements WorkerRepository {
 
 
     @Override
-    public Result<List<Worker>> getAllWorkers(){
+    public synchronized Result<List<Worker>> getAllWorkers(){
         return Result.success(getWorkersSortedByName());
     }
 
 
 
-//    @Override
-//    public Result<String> getInfo() {
-//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
-//        String formattedDate = creationDate.format(formatter);
-//        String info = String.format(
-//                "Collection type: %s\n" +
-//                        "Initialization date: %s\n" +
-//                        "Number of items: %d",
-//                workers.getClass().getSimpleName(),
-//                formattedDate,
-//                workers.size());
-//        return Result.success(info);
-//    }
-//
-//
-//
     @Override
-    public Result<Integer> clear() {
-        workers.clear();
+    public synchronized Result<String> getInfo() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+        String formattedDate = creationDate.format(formatter);
+        String info = String.format(
+                "Collection type: %s\n" +
+                        "Initialization date: %s\n" +
+                        "Number of items: %d",
+                workers.getClass().getSimpleName(),
+                formattedDate,
+                workers.size());
+        return Result.success(info);
+    }
+
+
+
+    @Override
+    public synchronized Result<Void> clear() {
+        workers.removeIf((worker -> worker.getCreatorName().equals(UserContext.get().name())));
         return Result.success();
     }
-//
-//
-//
-//    @Override
-//    public Result<Boolean> removeById(long id) {
-//        boolean isSusses = workers.removeIf(x -> x.getId() == id);
-//        return Result.success(isSusses);
-//    }
-//
-//
-//
-//    @Override
-//    public Result<Worker> getHead(){
-//        if(workers.isEmpty()){
-//            return Result.success(null);
-//        }
-//        return Result.success(workers.getFirst());
-//    }
-//
-//
-//
-//    @Override
-//    public Result<List<Long>> getDescendingSalaries(){
-//        List<Long> descendingSalaries = workers.stream()
-//                .map(Worker::getSalary)
-//                .sorted(java.util.Comparator.reverseOrder())
-//                .toList();
-//        return Result.success(descendingSalaries);
-//    }
-//
-//
-//
-//    @Override
-//    public Result<Worker> removeHead() {
-//        if(workers.isEmpty()){
-//            return Result.success(null);
-//        }
-//        return Result.success(workers.removeFirst());
-//    }
-//
-//
-//
-//    @Override
-//    public Result<Integer> removeAllByPosition(Position position) {
-//        int initSize = workers.size();
-//        workers.removeIf(worker -> worker.getPosition() == position);
-//        int removed = initSize - workers.size();
-//        return Result.success(removed);
-//    }
-//
-//
-//
-//    @Override
-//    public Result<Long> sumOfSalary() {
-//        long totalSum = workers
-//                                .stream()
-//                                .mapToLong(Worker::getSalary)
-//                                .sum();
-//        return Result.success(totalSum);
-//    }
-//
-//
-//    public int getSize(){
-//        return workers.size();
-//    }
-//
-//
-//
-    public boolean isCollectionEmpty(){
+
+
+
+    @Override
+    public synchronized Result<Boolean> removeById(long id) {
+        boolean isSusses = workers.removeIf(x -> x.getId() == id);
+        return Result.success(isSusses);
+    }
+
+
+
+    @Override
+    public synchronized Result<Worker> getHead(){
+        if(workers.isEmpty()){
+            return Result.success(null);
+        }
+        return Result.success(workers.getFirst());
+    }
+
+
+
+    @Override
+    public synchronized Result<List<Long>> getDescendingSalaries(){
+        List<Long> descendingSalaries = workers.stream()
+                .map(Worker::getSalary)
+                .sorted(java.util.Comparator.reverseOrder())
+                .toList();
+        return Result.success(descendingSalaries);
+    }
+
+
+    @Override
+    public synchronized Result<Worker> removeHead() {
+        if(workers.isEmpty()){
+            return Result.success(null);
+        }
+        String nameUser = UserContext.get().name();
+        Optional<Worker> optional = workers.stream()
+                        .filter(worker -> worker.getCreatorName().equals(nameUser))
+                        .sorted(Comparator.comparing(Worker::getName))
+                        .findFirst();
+        if(optional.isEmpty())
+            return Result.success(new Worker());
+        workers.remove(optional.get());
+        return Result.success(optional.get());
+    }
+
+
+
+    @Override
+    public synchronized Result<Integer> removeAllByPosition(Position position) {
+        int initSize = workers.size();
+        workers.removeIf(worker -> worker.getPosition() == position && Objects.equals(worker.getCreatorName(), UserContext.get().name()));
+        int removed = initSize - workers.size();
+        return Result.success(removed);
+    }
+
+
+
+    @Override
+    public synchronized Result<Long> sumOfSalary() {
+        long totalSum = workers
+                                .stream()
+                                .mapToLong(Worker::getSalary)
+                                .sum();
+        return Result.success(totalSum);
+    }
+
+
+
+    public synchronized boolean isCollectionEmpty(){
         return workers.isEmpty();
     }
-//
-//
-//
+
+
+
     @Override
-    public Result<Boolean> existById(long workerId) {
+    public synchronized Result<Boolean> existById(long workerId) {
         boolean exist = workers
                         .stream()
-                        .anyMatch(worker -> worker.getId()== workerId);
+                        .anyMatch(worker -> worker.getId() == workerId && worker.getCreatorName().equals(UserContext.get().name()));
         return Result.success(exist);
     }
 
 
 
-    public void load() {
-        formLoad.load();
-        syncWithExistingWorkers(workers);
+    @Override
+    public void load(){
+        throw new UnsupportedOperationException("Este metodo no es soportado por esta clase.");
     }
 
-
-
-    public void save() {
-        formSave.save();
-    }
-
-
-
-    public void setFormLoad(FormLoad formLoad) {
-        this.formLoad = formLoad;
-    }
-
-
-
-    public void setFormSave(FormSave formSave) {
-        this.formSave= formSave;
-    }
 }
 
 

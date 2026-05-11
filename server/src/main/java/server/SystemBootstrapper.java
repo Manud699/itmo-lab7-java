@@ -3,7 +3,6 @@ package server;
 import server.network.ServerAddress;
 import server.repository.DataBaseWorker;
 import server.repository.UserRepository;
-import server.storage.*;
 import server.commands.*;
 import server.network.NetworkServer;
 import server.repository.CommandRegistry;
@@ -36,11 +35,12 @@ public class SystemBootstrapper {
     public RunnerAppServer getRunnerAppServer() {
         initDataBaseConnection();
         initRepository();
-        initFileStructure();
         initCommands();
         initNetworking();
+        initLoadData();
         return new RunnerAppServer(networkServer);
     }
+
 
 
     public void initDataBaseConnection() {
@@ -60,35 +60,21 @@ public class SystemBootstrapper {
 
 
 
-    public void initFileStructure(){
-//        String file = StartupValidator.getValidFileName(argms);
-//        File targetSaveFile= new File(file);
-//        File targetLoadFile = FindFile.find(new File(file));
-//        FormLoad formLoad = new LoadFromCSV(targetLoadFile, this.workerRepository);
-//        FormSave formSave = new SaveToCSV(targetSaveFile, this.workerRepository);
-//        this.workerRepository.setFormLoad(formLoad);
-//        this.workerRepository.setFormSave(formSave);
-    }
-
-
-
     public void initCommands(){
         commandRegistry.addCommand(new AddCommand(workerRepository));
         commandRegistry.addCommand(new ClearCommand(workerRepository));
         commandRegistry.addCommand(new ShowCommand(workerRepository));
         commandRegistry.addCommand(new UpdateByIdCommand(workerRepository));
         commandRegistry.addCommand(new CheckId(workerRepository));
-//        commandRegistry.addCommand(new RemoveByIdCommand(workerRepository));
-//        commandRegistry.addCommand(new HeadCommand(workerRepository));
-//        commandRegistry.addCommand(new RemoveAllByPositionCommand(workerRepository));
-//        commandRegistry.addCommand(new SumOfSalaryCommand(workerRepository));
-//        commandRegistry.addCommand(new PrintFieldDescendingSalaryCommand(workerRepository));
-//        commandRegistry.addCommand(new RemoveHeadCommand(workerRepository));
-//        commandRegistry.addCommand(new InfoCommand(workerRepository));
+        commandRegistry.addCommand(new RemoveByIdCommand(workerRepository));
+        commandRegistry.addCommand(new HeadCommand(workerRepository));
+        commandRegistry.addCommand(new RemoveAllByPositionCommand(workerRepository));
+        commandRegistry.addCommand(new SumOfSalaryCommand(workerRepository));
+        commandRegistry.addCommand(new PrintFieldDescendingSalaryCommand(workerRepository));
+        commandRegistry.addCommand(new RemoveHeadCommand(workerRepository));
+        commandRegistry.addCommand(new InfoCommand(workerRepository));
         commandRegistry.addCommand(new RegistrateUserCommand(userRepository));
         commandRegistry.addCommand(new LoggingUserCommand(userRepository));
-//
-
     }
 
 
@@ -100,16 +86,7 @@ public class SystemBootstrapper {
 
 
 
-
-
-    
-//    public void initLoadData(){
-//        localWorkerRepository.load();
-//    }
-
-
-
-//    public void initSaveData(){
-//        ShutdownHookRegistrer.reisterHook(localWorkerRepository);
-//    }
+    public void initLoadData(){
+        workerRepository.load();
+    }
 }

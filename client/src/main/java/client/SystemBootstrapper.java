@@ -92,19 +92,20 @@ public class SystemBootstrapper {
     public void initCommands() {
         commandRegistry.addCommand(new AddCommand(proxyWorkerRepository, console, workerBuilder));
         commandRegistry.addCommand(new ShowCommand(proxyWorkerRepository, console));
-//        commandRegistry.addCommand(new RemoveByIdCommand(proxyWorkerRepository, console));
-//        commandRegistry.addCommand(new HeadCommand(proxyWorkerRepository, console));
-//        commandRegistry.addCommand(new RemoveHeadCommand(proxyWorkerRepository, console));
-//        commandRegistry.addCommand(new SumOfSalaryCommand(proxyWorkerRepository, console));
         commandRegistry.addCommand(new HelpCommand(commandRegistry, console));
         commandRegistry.addCommand(new HistoryCommand(commandRegistry, console));
         commandRegistry.addCommand(new ClearCommand(proxyWorkerRepository, console));
-//        commandRegistry.addCommand(new InfoCommand(proxyWorkerRepository, console));
         commandRegistry.addCommand(new UpdateByIdCommand(proxyWorkerRepository, console, workerBuilder));
         commandRegistry.addCommand(new ExitCommand(console));
-//        commandRegistry.addCommand(new ExecuteScriptCommand(console, scriptExecutionStack));
-//        commandRegistry.addCommand(new PrintFieldDescendingSalaryCommand(proxyWorkerRepository, console));
-//        commandRegistry.addCommand(new RemoveAllByPosition(proxyWorkerRepository, console));
+        commandRegistry.addCommand(new RemoveByIdCommand(proxyWorkerRepository, console));
+        commandRegistry.addCommand(new ExecuteScriptCommand(console, scriptExecutionStack));
+        commandRegistry.addCommand(new HeadCommand(proxyWorkerRepository, console));
+        commandRegistry.addCommand(new InfoCommand(proxyWorkerRepository, console));
+        commandRegistry.addCommand(new PrintFieldDescendingSalaryCommand(proxyWorkerRepository, console));
+        commandRegistry.addCommand(new RemoveAllByPosition(proxyWorkerRepository, console));
+        commandRegistry.addCommand(new RemoveHeadCommand(proxyWorkerRepository, console));
+        commandRegistry.addCommand(new SumOfSalaryCommand(proxyWorkerRepository, console));
+
     }
 
     public void initCommandsUser(){
