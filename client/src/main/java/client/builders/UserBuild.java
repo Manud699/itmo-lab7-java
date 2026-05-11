@@ -5,15 +5,11 @@ import client.cli.Console;
 import common.network.User;
 import common.security.HashSecurity;
 
-
 public class UserBuild extends AbstractConsoleBuilder<User> {
-
 
     public UserBuild(InputProvider inputProvider, Console console){
         super(inputProvider, console);
     }
-
-
 
     @Override
     public User build(){
@@ -23,27 +19,22 @@ public class UserBuild extends AbstractConsoleBuilder<User> {
     }
 
 
-
     public String nameUser(){
-       return askString("nombre de usuario ","[no debe ser null/vacio]", name -> name != null && !name.isEmpty());
+        return askString("new username", "[username cannot be empty]", name -> name != null && !name.isEmpty());
     }
-
-
 
     public String password(){
-        return askString("password","[minimo 8 caracteres]", password -> password.length() >= 8);
+        return askString("new password", "[password must be at least 8 characters]", password -> password.length() >= 8);
     }
-
 
 
     public String loggingName(){
-        return askString("name:", name -> name != null && !name.isEmpty());
+        return askString("login: ", name -> name != null && !name.isEmpty());
     }
 
 
-
     public String loggingPassword(){
-        String prePassword =  askString("password:", password -> password != null && !password.isEmpty());
-        return  HashSecurity.getHash(prePassword);
+        String prePassword =  askString("Password: ", password -> password != null && !password.isEmpty());
+        return HashSecurity.getHash(prePassword);
     }
 }

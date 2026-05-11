@@ -1,12 +1,10 @@
 package server.multithread;
 
 import common.network.Request;
-
 import server.repository.CommandRegistry;
 import java.net.SocketAddress;
 
 public class ClientHandler implements Runnable{
-
 
     private final CommandRegistry commandRegistry;
     private final Request request;

@@ -87,7 +87,6 @@ public class ApplicationRunner {
     }
 
 
-
     public String[] spliterInputLine(String inputLine) {
         String[] spliter = inputLine.split("\\s+", 2);
         String commandName = spliter[0];
@@ -96,21 +95,35 @@ public class ApplicationRunner {
     }
 
 
-
-    public void startSession(){
+    public void startSession() {
         Scanner scanner = inputProvider.getCurrentScanner();
-        console.println("Your Welcome to Gestor workers");
-        console.println("Iniciar Sesion (login)");
-        console.println("Registrarse (registrate)");
-        while (true){
+        console.println("Welcome to Worker Management System (tty1)");
+        console.println("");
+        console.println("Available commands:");
+        console.println("  login      - Authenticate an existing user");
+        console.println("  register - Create a new user account");
+        console.println("");
+
+        while (true) {
             console.ps1();
+            if (!scanner.hasNextLine()) {
+                console.println("exit");
+                System.exit(0);
+            }
+
             String lineUser = scanner.nextLine().toLowerCase().trim();
+
+            if (lineUser.isEmpty()) {
+                continue;
+            }
+
             int flagStatus = commandUserRegistry.execute(lineUser);
-            if(flagStatus == 0)
+
+            if (flagStatus == 0) {
                 start();
+            }
         }
     }
-
 
 
     public void showScriptSummary() {

@@ -7,7 +7,6 @@ import java.util.Map;
 
 public class CommandUserRegistry {
 
-    CommandUser commandUser;
 
     Map<String, CommandUser> commandsUser;
     private final Console console;
@@ -18,18 +17,17 @@ public class CommandUserRegistry {
     }
 
 
-
     public void addCommand(String name, CommandUser commandUser){
         commandsUser.put(name.trim().toUpperCase(), commandUser);
     }
 
 
-
-    public int execute(String commandName){;
+    public int execute(String commandName){
         String command = commandName.trim().toUpperCase();
-        if(commandsUser.containsKey(command))
-            return  commandsUser.get(command).execute();
-        console.printError("no se reconoce la entrada. Vuelve a intentarlo");
+        if(commandsUser.containsKey(command)) {
+            return commandsUser.get(command).execute();
+        }
+        console.printError(commandName.trim() + ": command not found");
         return 1;
     }
 }

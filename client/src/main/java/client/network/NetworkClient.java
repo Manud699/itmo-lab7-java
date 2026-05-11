@@ -4,7 +4,6 @@ import common.network.DataChunk;
 import common.network.Request;
 import common.network.Response;
 import common.network.Result;
-
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -20,7 +19,6 @@ public class NetworkClient {
         this.host = host;
         this.port = port;
     }
-
 
 
     public Response execute(Request request) {
@@ -42,7 +40,6 @@ public class NetworkClient {
     }
 
 
-
     private byte[] serialize(Object obj) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
@@ -53,7 +50,6 @@ public class NetworkClient {
     }
 
 
-
     private Object deserialize(byte[] bytes) throws IOException, ClassNotFoundException {
         ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
         try (ObjectInputStream ois = new ObjectInputStream(bais)) {
@@ -62,11 +58,9 @@ public class NetworkClient {
     }
 
 
-
     private void sendData(DatagramChannel channel, byte[] data, InetSocketAddress address) throws IOException {
         channel.send(ByteBuffer.wrap(data), address);
     }
-
 
 
     private byte[] receiveDataChunks(DatagramChannel channel) throws IOException, InterruptedException, ClassNotFoundException {

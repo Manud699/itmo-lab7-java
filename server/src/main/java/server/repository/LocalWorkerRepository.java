@@ -16,12 +16,10 @@ public class LocalWorkerRepository implements WorkerRepository {
     private final ZonedDateTime creationDate;
 
 
-
     public LocalWorkerRepository() {
         this.workers = new ArrayDeque<>();
         this.creationDate = ZonedDateTime.now();
     }
-
 
 
     @Override
@@ -31,35 +29,26 @@ public class LocalWorkerRepository implements WorkerRepository {
     }
 
 
-
     @Override
     public synchronized Result<Void> updateWorkerById(Worker workerUpdated) {
         var optionalWorker = workers
                 .stream()
                 .filter(worker -> worker.getId() == workerUpdated.getId())
                 .findFirst();
+        if (optionalWorker.isEmpty()) {
+            return Result.failure("The worker was not found in the local memory.");
+        }
+
         var oldWorker = optionalWorker.get();
         oldWorker.setName(workerUpdated.getName());
         oldWorker.setCoordinates(workerUpdated.getCoordinates());
         oldWorker.setSalary(workerUpdated.getSalary());
         oldWorker.setPosition(workerUpdated.getPosition());
-        oldWorker.setStatus(oldWorker.getStatus());
-        oldWorker.setOrganization(oldWorker.getOrganization());
+        oldWorker.setStatus(workerUpdated.getStatus());
+        oldWorker.setOrganization(workerUpdated.getOrganization());
+
         return Result.success();
     }
-
-
-
-    public synchronized Deque<Worker> getWorkers() {
-        return workers;
-    }
-
-
-
-    public synchronized ZonedDateTime getCreationDate() {
-        return creationDate; 
-    } 
-
 
 
     public synchronized List<Worker> getWorkersSortedByName() {
@@ -70,12 +59,10 @@ public class LocalWorkerRepository implements WorkerRepository {
     }
 
 
-
     @Override
     public synchronized Result<List<Worker>> getAllWorkers(){
         return Result.success(getWorkersSortedByName());
     }
-
 
 
     @Override
@@ -93,7 +80,6 @@ public class LocalWorkerRepository implements WorkerRepository {
     }
 
 
-
     @Override
     public synchronized Result<Void> clear() {
         workers.removeIf((worker -> worker.getCreatorName().equals(UserContext.get().name())));
@@ -109,7 +95,6 @@ public class LocalWorkerRepository implements WorkerRepository {
     }
 
 
-
     @Override
     public synchronized Result<Worker> getHead(){
         if(workers.isEmpty()){
@@ -117,7 +102,6 @@ public class LocalWorkerRepository implements WorkerRepository {
         }
         return Result.success(workers.getFirst());
     }
-
 
 
     @Override
@@ -147,7 +131,6 @@ public class LocalWorkerRepository implements WorkerRepository {
     }
 
 
-
     @Override
     public synchronized Result<Integer> removeAllByPosition(Position position) {
         int initSize = workers.size();
@@ -155,7 +138,6 @@ public class LocalWorkerRepository implements WorkerRepository {
         int removed = initSize - workers.size();
         return Result.success(removed);
     }
-
 
 
     @Override
@@ -168,13 +150,6 @@ public class LocalWorkerRepository implements WorkerRepository {
     }
 
 
-
-    public synchronized boolean isCollectionEmpty(){
-        return workers.isEmpty();
-    }
-
-
-
     @Override
     public synchronized Result<Boolean> existById(long workerId) {
         boolean exist = workers
@@ -184,12 +159,10 @@ public class LocalWorkerRepository implements WorkerRepository {
     }
 
 
-
     @Override
     public void load(){
-        throw new UnsupportedOperationException("Este metodo no es soportado por esta clase.");
+        throw new UnsupportedOperationException("This method is not supported by this class.");
     }
-
 }
 
 

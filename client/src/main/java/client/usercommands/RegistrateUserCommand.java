@@ -22,7 +22,6 @@ public class RegistrateUserCommand implements CommandUser {
     }
 
 
-
     @Override
     public int execute(){
         var user = userBuild.build();

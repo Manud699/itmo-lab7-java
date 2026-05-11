@@ -11,15 +11,15 @@ import java.net.SocketAddress;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class SendTask implements Runnable  {
+public class SendResponse implements Runnable  {
 
-    private static final Logger logger = Logger.getLogger(SendTask.class.getName());
+    private static final Logger logger = Logger.getLogger(SendResponse.class.getName());
 
     private final Response response;
     private final SocketAddress clientAddress;
     private final DatagramSocket datagramSocket;
 
-    public SendTask(Response response, SocketAddress clientAddress, DatagramSocket socket){
+    public SendResponse(Response response, SocketAddress clientAddress, DatagramSocket socket){
         this.response = response;
         this.clientAddress = clientAddress;
         this.datagramSocket = socket;

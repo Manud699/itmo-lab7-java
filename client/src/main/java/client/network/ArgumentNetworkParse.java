@@ -27,6 +27,7 @@ public class ArgumentNetworkParse {
         return new AddressNetwork(host, port);
     }
 
+
     public static int parsePort(String portString, Console console) {
         Optional<Integer> portOptional = NumberParseSafe.parse(portString, Integer::parseInt);
 

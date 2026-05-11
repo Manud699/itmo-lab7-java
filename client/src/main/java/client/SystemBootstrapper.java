@@ -49,26 +49,25 @@ public class SystemBootstrapper {
 
 
 
-    public void initInfrastructure() {
+    private void initInfrastructure() {
         this.inputProvider = new InputProvider();
         this.console = new StandardConsole();
 
     }
 
 
-    public void initNetworkClient(){
+    private void initNetworkClient(){
         var networkArguments = ArgumentNetworkParse.parseNetworkArguments(argumentsFromMain, console);
         this.networkClient = new NetworkClient(networkArguments.host(), networkArguments.port());
     }
 
 
-    public void initProxyRepository(){
+    private void initProxyRepository(){
         this.proxyWorkerRepository = new ProxyWorkerRepository(networkClient, clientSession);
     }
 
 
-
-    public void initRepositories() {
+    private void initRepositories() {
         this.userRegistry = new UserRegistry(networkClient);
         this.commandUserRegistry = new CommandUserRegistry(console);
         this.commandRegistry = new CommandRegistry(console);
@@ -77,8 +76,7 @@ public class SystemBootstrapper {
     }
 
 
-
-    public void initBuildersMainObject() {
+    private void initBuildersMainObject() {
         var coordinatesBuild = new CoordinatesBuilder(inputProvider, console);
         var organizationBuild = new OrganizationBuilder(inputProvider, console);
         this.workerBuilder = new WorkerMainBuilder(inputProvider, console);
@@ -88,15 +86,14 @@ public class SystemBootstrapper {
     }
 
 
-
-    public void initCommands() {
+    private void initCommands() {
+        commandRegistry.addCommand(new ExitCommand());
         commandRegistry.addCommand(new AddCommand(proxyWorkerRepository, console, workerBuilder));
         commandRegistry.addCommand(new ShowCommand(proxyWorkerRepository, console));
         commandRegistry.addCommand(new HelpCommand(commandRegistry, console));
         commandRegistry.addCommand(new HistoryCommand(commandRegistry, console));
         commandRegistry.addCommand(new ClearCommand(proxyWorkerRepository, console));
         commandRegistry.addCommand(new UpdateByIdCommand(proxyWorkerRepository, console, workerBuilder));
-        commandRegistry.addCommand(new ExitCommand(console));
         commandRegistry.addCommand(new RemoveByIdCommand(proxyWorkerRepository, console));
         commandRegistry.addCommand(new ExecuteScriptCommand(console, scriptExecutionStack));
         commandRegistry.addCommand(new HeadCommand(proxyWorkerRepository, console));
@@ -108,9 +105,9 @@ public class SystemBootstrapper {
 
     }
 
-    public void initCommandsUser(){
-        commandUserRegistry.addCommand("logging", new LoggingUserCommand(userBuild, userRegistry, console, clientSession));
-        commandUserRegistry.addCommand("registrate", new RegistrateUserCommand(userBuild,userRegistry,console, clientSession));
-    }
 
+    private void initCommandsUser(){
+        commandUserRegistry.addCommand("login", new LoggingUserCommand(userBuild, userRegistry, console, clientSession));
+        commandUserRegistry.addCommand("register", new RegistrateUserCommand(userBuild,userRegistry,console, clientSession));
+    }
 }

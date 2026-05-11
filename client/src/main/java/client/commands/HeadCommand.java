@@ -6,20 +6,12 @@ import common.network.Result;
 import common.repository.WorkerRepository;
 
 
-/**
- * Command: head
- * Description: Prints the first element of the collection.
- */
 public class HeadCommand extends AbstractCommand implements TableDisplayable {
 
     private final WorkerRepository workerRepository;
     private final Console console;
 
 
-    /**
-     * Constructor for the HeadCommand class.
-     * @param console the console for input/output operations
-     */
     public HeadCommand(WorkerRepository workerRepository, Console console) {
         super("head","Prints the first element of the collection");
         this.workerRepository = workerRepository;
@@ -27,11 +19,6 @@ public class HeadCommand extends AbstractCommand implements TableDisplayable {
     }
 
 
-
-    /**
-     * Executes the head command.
-     * @return 0 if successful, another value if validation fail.
-     */
     @Override
     public int execute(String argms){
         if(!validateNoArgument(argms, console)) {

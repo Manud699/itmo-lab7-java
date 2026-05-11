@@ -4,12 +4,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import client.cli.Console;
 import client.repository.ScriptExecutionStack;
-import common.util.FindFile;
+import client.filehelper.FindFile;
 
-/**
- * Command: ExecuteScriptCommand
- * Command description: Reads and executes the script from the specified file.
- */
+
 public class ExecuteScriptCommand extends AbstractCommand {
 
     private final Console console;
@@ -40,17 +37,17 @@ public class ExecuteScriptCommand extends AbstractCommand {
         fileScript = FindFile.find(fileScript);
 
         if (!fileScript.exists()) {
-            console.printError("Error: The specified script does not exist at: " + fileScript.getAbsolutePath());
+            console.printError("Error: The specified script does not exist");
             return 2;
         }
 
         if (!fileScript.canRead()) {
-            console.printError("Error: Cannot read the script (permission denied) at: " + fileScript.getAbsolutePath());
+            console.printError("Error: Cannot read the script (permission denied)");
             return 3;
         }
 
         if (scriptExecutionStack.isActiveScript(fileScript.getAbsolutePath())) {
-            console.printError("Error: Infinite recursion detected. The script is already running: " + fileScript.getAbsolutePath());
+            console.printError("Error: Infinite recursion detected. The script is already running: " + fileScript.getName());
             return 4;
         }
 
@@ -61,13 +58,12 @@ public class ExecuteScriptCommand extends AbstractCommand {
 
         try {
             scriptExecutionStack.connectToFileScanner(fileScript);
-            console.println("Executing script from: " + fileScript.getAbsolutePath() + "...");
             return 0;
         } catch (FileNotFoundException e) {
-            console.printError("Error: Could not open the script file. " + e.getMessage());
+            console.printError("Error: Could not open the script file." );
             return 5;
         } catch (Exception e) {
-            console.printError("An unexpected error occurred while executing the script: " + e.getMessage());
+            console.printError("An unexpected error occurred while executing the script: ");
             return 6;
         }
     }

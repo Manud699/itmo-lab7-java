@@ -8,11 +8,7 @@ import common.repository.WorkerRepository;
 
 import java.time.ZonedDateTime;
 
-/**
- * Command: AddCommand
- * Command description: Adds a new worker to the collection.
- */
-public class AddCommand extends AbstractCommand {
+public final class AddCommand extends AbstractCommand {
 
     private final WorkerRepository localWorkerRepository;
 

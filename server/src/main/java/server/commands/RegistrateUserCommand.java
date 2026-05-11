@@ -9,7 +9,7 @@ public class RegistrateUserCommand extends AbstractCommand {
     private final UserRepository userRepository;
 
     public RegistrateUserCommand(UserRepository userRepository){
-        super("registrate","");
+        super("register","");
         this.userRepository = userRepository;
     }
 

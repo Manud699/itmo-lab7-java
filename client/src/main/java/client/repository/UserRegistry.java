@@ -18,7 +18,7 @@ public class UserRegistry {
 
     @SuppressWarnings("unchecked")
     public Result<Boolean> logging(User user){
-        Request request = new Request(user, "logging");
+        Request request = new Request(user, "login");
         Response response =  networkClient.execute(request);
         return (Result<Boolean>)response.result();
     }
@@ -27,7 +27,7 @@ public class UserRegistry {
 
     @SuppressWarnings("unchecked")
     public Result<Void> registrate(User user){
-        Request request = new Request(user, "registrate");
+        Request request = new Request(user, "register");
         Response response = networkClient.execute(request);
         return (Result<Void>) response.result();
     }

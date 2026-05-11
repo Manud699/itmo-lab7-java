@@ -9,11 +9,6 @@ import client.cli.Console;
 import client.cli.InputProvider;
 
 
-/**
- * AbstractConsoleBuilder is an abstract class that provides common methods for building objects through console input.
- * It uses an InputProvider to get the current Scanner and a Console to interact with the usercommands.
- * Subclasses of AbstractConsoleBuilder will implement the build() method to create specific objects based on usercommands input.
- */
 public abstract class AbstractConsoleBuilder<T>  {
 
 
@@ -95,7 +90,7 @@ public abstract class AbstractConsoleBuilder<T>  {
             scanner = inputProvider.getCurrentScanner();
             if(inputProvider.isInteractiveMode()){
                 console.ps2();
-                console.print("Enter " + prompt + " " + restrictions + ":" );
+                console.print("Enter " + prompt + " " + restrictions + ": " );
             }
             if(!isSafeNextLine(scanner)){
                 console.println("Exiting program...");

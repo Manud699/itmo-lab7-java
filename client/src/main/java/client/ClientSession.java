@@ -14,8 +14,4 @@ public class ClientSession {
         return user;
     }
 
-    public boolean isLogging(){
-        return user != null;
-    }
-
 }

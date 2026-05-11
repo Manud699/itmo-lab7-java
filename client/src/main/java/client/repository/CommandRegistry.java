@@ -5,15 +5,10 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import client.cli.Console;
 import client.commands.Command;
 
 
-/**
- * Class CommandRegistry
- * Description: This class is responsible for managing the registration and execution of commands in the application.
- */
 public class CommandRegistry {
 
     private final Map<String, Command> commands;    

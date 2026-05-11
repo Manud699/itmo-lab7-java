@@ -1,4 +1,4 @@
 package server.storagedb;
 
-public record DatabaseCredentials(String URL, String user, String password) {
+public record DatabaseCredentials(String url, String user, String password) {
 }

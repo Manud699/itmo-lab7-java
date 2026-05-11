@@ -18,20 +18,17 @@ public class UserRepository {
     private static final Logger logger = Logger.getLogger(UserRepository.class.getName());
     private final DatabaseConnection databaseConnection;
 
-
-
-    public UserRepository(DatabaseConnection databaseConnection){
+    public UserRepository(DatabaseConnection databaseConnection) {
         this.databaseConnection = databaseConnection;
     }
 
-
-
     public Response registrate(User user) {
 
-        if(isUserRegistrate(user.name()))
-            return new Response(Result.failure("Nombre de usuario existente. Elige otro por favor."));
+        if (isUserRegistrate(user.name()))
+            return new Response(Result.failure("Username already exists. Please choose another one."));
 
         String registrateSQL = "INSERT INTO users (name, password_hash, salt) VALUES (?, ?, ?)";
+
 
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement ps = connection.prepareStatement(registrateSQL)) {
@@ -49,27 +46,26 @@ public class UserRepository {
             if (rowsAffected > 0)
                 return new Response(Result.success(true));
 
-            return new Response(Result.failure("Fallo desconocido al insertar en la base de datos"));
+            return new Response(Result.failure("Unknown failure while inserting into database"));
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error SQL al intentar registrar al usuario", e);
-            return new Response(Result.failure("Error interno del servidor: " + e.getMessage()));
+            logger.log(Level.SEVERE, "SQL error while trying to register user", e);
+            return new Response(Result.failure("Internal server error: " + e.getMessage()));
         }
     }
 
 
-
-    public Response logging(User user){
-        if(!isUserRegistrate(user.name()))
-            return new Response(Result.failure("El usuario no existe "+ user.name()));
+    public Response logging(User user) {
+        if (!isUserRegistrate(user.name()))
+            return new Response(Result.failure("User does not exist: " + user.name()));
 
         String selectUser = "SELECT password_hash, salt FROM users WHERE name = ?";
-        try(Connection connection = databaseConnection.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(selectUser)) {
+        try (Connection connection = databaseConnection.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(selectUser)) {
 
             preparedStatement.setString(1, user.name());
 
-            try(ResultSet resultSet = preparedStatement.executeQuery()) {
-                if(resultSet.next()){
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
 
                     String password_hash = resultSet.getString("password_hash");
                     String salt = resultSet.getString("salt");
@@ -77,19 +73,18 @@ public class UserRepository {
                     String prePassword = user.password();
                     String temporalPassword = HashSecurity.getHash(prePassword + salt);
 
-                    if(!temporalPassword.equals(password_hash))
-                        return new Response(Result.failure("Password incorrecta"));
+                    if (!temporalPassword.equals(password_hash))
+                        return new Response(Result.failure("Incorrect password"));
 
                     return new Response(Result.success());
                 }
-                return new Response(Result.failure("Nombre de usuario incorrecto"));
+                return new Response(Result.failure("Incorrect username"));
             }
-        } catch (SQLException e){
+        } catch (SQLException e) {
             logger.log(Level.SEVERE, e.getMessage());
-            return new Response(Result.failure("Lo sentimos, ha ocurrido un error. Intentanlo de nuevo por favor"));
+            return new Response(Result.failure("Sorry, an error has occurred. Please try again."));
         }
     }
-
 
 
     public boolean isUserRegistrate(String nameUser) {
@@ -106,11 +101,8 @@ public class UserRepository {
                 }
             }
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error al verificar la existencia del usuario", e);
+            logger.log(Level.SEVERE, "Error while checking user existence", e);
         }
         return false;
     }
-
-
-
 }

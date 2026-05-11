@@ -5,12 +5,10 @@ import client.cli.Console;
 
 public class ExitCommand extends AbstractCommand  {
 
-    private final Console console;
 
-
-    public ExitCommand(Console console) {
+    public ExitCommand() {
         super("exit", "Terminates the program");
-        this.console = console;
+
     }
 
 

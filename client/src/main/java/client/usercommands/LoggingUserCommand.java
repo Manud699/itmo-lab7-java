@@ -21,7 +21,6 @@ public class LoggingUserCommand implements CommandUser {
     }
 
 
-
     @Override
     public int execute(){
         String nameUser = userBuild.loggingName();

@@ -10,7 +10,7 @@ public class LoggingUserCommand extends AbstractCommand {
 
 
     public LoggingUserCommand(UserRepository userRepository){
-        super("logging", "");
+        super("login", "");
         this.userRepository = userRepository;
     }
 

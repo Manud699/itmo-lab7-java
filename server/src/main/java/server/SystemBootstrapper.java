@@ -10,9 +10,8 @@ import server.repository.LocalWorkerRepository;
 import server.storagedb.DatabaseConnection;
 import server.storagedb.DatabaseCredentials;
 import common.repository.WorkerRepository;
+import server.storagedb.HandlerEnvironment;
 import java.util.logging.Logger;
-
-
 
 
 public class SystemBootstrapper {
@@ -31,8 +30,7 @@ public class SystemBootstrapper {
     }
 
 
-
-    public RunnerAppServer getRunnerAppServer() {
+    public final RunnerAppServer getRunnerAppServer() {
         initDataBaseConnection();
         initRepository();
         initCommands();
@@ -42,16 +40,14 @@ public class SystemBootstrapper {
     }
 
 
-
-    public void initDataBaseConnection() {
-        DatabaseCredentials databaseCredentials = new DatabaseCredentials("jdbc:postgresql://localhost:5432/workers", "postgres", "12345");
+    private void initDataBaseConnection() {
+        DatabaseCredentials databaseCredentials = HandlerEnvironment.getDatabaseCredentials();
         DatabaseConnection.init(databaseCredentials);
         databaseConnection = DatabaseConnection.getInstance();
     }
 
 
-
-    public void initRepository(){
+    private void initRepository(){
         this.localWorkerRepository = new LocalWorkerRepository();
         this.commandRegistry = new CommandRegistry();
         this.workerRepository = new DataBaseWorker(databaseConnection, localWorkerRepository);
@@ -59,8 +55,7 @@ public class SystemBootstrapper {
     }
 
 
-
-    public void initCommands(){
+    private void initCommands(){
         commandRegistry.addCommand(new AddCommand(workerRepository));
         commandRegistry.addCommand(new ClearCommand(workerRepository));
         commandRegistry.addCommand(new ShowCommand(workerRepository));
@@ -78,15 +73,13 @@ public class SystemBootstrapper {
     }
 
 
-
-    public void initNetworking(){
-        int port = ServerAddress.parsePort(argms);
+    private void initNetworking(){
+        final int port = ServerAddress.parsePort(argms);
         this.networkServer = new NetworkServer(port, commandRegistry);
     }
 
 
-
-    public void initLoadData(){
+    private void initLoadData(){
         workerRepository.load();
     }
 }
