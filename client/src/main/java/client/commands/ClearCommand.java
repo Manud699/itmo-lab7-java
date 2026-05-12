@@ -30,7 +30,7 @@ public class ClearCommand extends AbstractCommand {
             console.printError(workersDeleted.getErrorMessage());
             return 2;
         }
-        console.println("Collection cleared successfully.");
+        console.println("Database cleared successfully.");
         return 0;
     }
 }

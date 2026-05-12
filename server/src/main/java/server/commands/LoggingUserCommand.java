@@ -19,6 +19,6 @@ public class LoggingUserCommand extends AbstractCommand {
 
     @Override
     public Response execute(Request request){
-        return  userRepository.logging(request.getUser());
+        return  userRepository.login(request.getUser());
     }
 }

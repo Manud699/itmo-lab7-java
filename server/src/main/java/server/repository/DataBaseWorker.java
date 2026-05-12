@@ -61,8 +61,6 @@ public class DataBaseWorker implements WorkerRepository {
                             }
                         }
                         return Result.failure("No ID was generated in the database.");
-
-
                     }
 
                 });
@@ -274,7 +272,6 @@ public class DataBaseWorker implements WorkerRepository {
     public Result<List<Long>> getDescendingSalaries() {
         return localWorkerRepository.getDescendingSalaries();
     }
-
 
 
 

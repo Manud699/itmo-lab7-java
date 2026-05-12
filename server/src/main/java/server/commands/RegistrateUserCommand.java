@@ -17,6 +17,6 @@ public class RegistrateUserCommand extends AbstractCommand {
 
     @Override
     public Response execute(Request request){
-        return  userRepository.registrate(request.getUser());
+        return  userRepository.register(request.getUser());
     }
 }
