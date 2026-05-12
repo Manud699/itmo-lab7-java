@@ -117,6 +117,6 @@ public class ProxyWorkerRepository implements WorkerRepository {
 
     @Override
     public void load(){
-        throw new UnsupportedOperationException("Esta operacion no es soportada en el cliente");
+        throw new UnsupportedOperationException("This operation is not supported on the client side.");
     }
 }

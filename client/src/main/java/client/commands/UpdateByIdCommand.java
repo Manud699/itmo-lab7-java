@@ -39,12 +39,12 @@ public class UpdateByIdCommand extends AbstractCommand {
 
         Result<Boolean> existResult = workerRepository.existById(workerId);
         if (!existResult.isSuccess()) {
-            console.printError("Error del servidor: " + existResult.getErrorMessage());
+            console.printError("Error: " + existResult.getErrorMessage());
             return 3;
         }
 
         if(!existResult.getValue()){
-            console.printError("Worker ID not found in the collection '" + argms+ "' or you don't have permission to modify it." );
+            console.printError("Worker ID not found '" + argms+ "' or you don't have permission to modify it." );
             return 4;
         }
 

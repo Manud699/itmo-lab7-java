@@ -13,15 +13,15 @@ public class HandlerEnvironment {
         final String password = System.getenv("password");
 
         if (url == null || url.isEmpty()) {
-            logger.log(Level.SEVERE, "Database URL environment variable (DB_URL) is not set or empty.");
+            logger.log(Level.SEVERE, "Database URL environment variable (url) is not set or empty.");
             System.exit(1);
         }
         if (user == null || user.isEmpty()) {
-            logger.log(Level.SEVERE, "Database username environment variable (DB_USER) is not set or empty.");
+            logger.log(Level.SEVERE, "Database username environment variable (user) is not set or empty.");
             System.exit(1);
         }
         if (password == null || password.isEmpty()) {
-            logger.log(Level.SEVERE, "Database password environment variable (DB_PASSWORD) is not set or empty.");
+            logger.log(Level.SEVERE, "Database password environment variable (password) is not set or empty.");
             System.exit(1);
         }
 

@@ -49,7 +49,7 @@ public class UserRepository {
             return new Response(Result.failure("Unknown failure while inserting into database"));
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "SQL error while trying to register user", e);
-            return new Response(Result.failure("Internal server error: " + e.getMessage()));
+            return new Response(Result.failure("Internal server error: The database is temporarily unavailable. Please try again later."));
         }
     }
 

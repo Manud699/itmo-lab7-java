@@ -97,10 +97,11 @@ public class LocalWorkerRepository implements WorkerRepository {
 
     @Override
     public synchronized Result<Worker> getHead(){
-        if(workers.isEmpty()){
-            return Result.success(null);
-        }
-        return Result.success(workers.getFirst());
+        var firsWorker = workers
+                        .stream()
+                        .min(Comparator.comparing(Worker::getName))
+                        .orElse(null);
+        return Result.success(firsWorker);
     }
 
 
@@ -120,14 +121,13 @@ public class LocalWorkerRepository implements WorkerRepository {
             return Result.success(null);
         }
         String nameUser = UserContext.get().name();
-        Optional<Worker> optional = workers.stream()
-                        .filter(worker -> worker.getCreatorName().equals(nameUser))
-                        .sorted(Comparator.comparing(Worker::getName))
-                        .findFirst();
-        if(optional.isEmpty())
-            return Result.success(new Worker());
-        workers.remove(optional.get());
-        return Result.success(optional.get());
+         var firstworker= workers.stream()
+                                 .filter(worker -> worker.getCreatorName().equals(nameUser))
+                                 .min(Comparator.comparing(Worker::getName)).orElse(null);
+        if(firstworker == null)
+            return Result.success(null);
+        workers.remove(firstworker);
+        return Result.success(firstworker);
     }
 
 

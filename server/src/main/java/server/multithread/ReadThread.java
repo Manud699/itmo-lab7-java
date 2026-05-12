@@ -34,10 +34,13 @@ public final class ReadThread implements Runnable {
             logger.log(Level.INFO,"Received from client -> Command: [" + request.getCommandName() + "]");
 
             var clientHandler = new ClientHandler(request,commandRegistry,responseProvider, socketAddress);
-            var thread = new Thread(clientHandler);
+            var nameThread = "command-worker-"+request.getCommandName();
+            var thread = new Thread(clientHandler, nameThread);
             thread.start();
+;
         } catch (Exception e) {
-            logger.log(Level.SEVERE,"Error processing incoming packet ", e);
+            logger.log(Level.SEVERE,"Error processing incoming packet in ", e);
         }
     }
+
 }

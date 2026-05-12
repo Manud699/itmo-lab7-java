@@ -25,7 +25,7 @@ public class RemoveAllByPosition extends AbstractCommand {
             return 1;
         }
 
-        Position position = convertToStatusEnum(argm);
+        Position position = convertToEnum(argm);
         if (position == null) {
             console.printError("Error: '" + argm + "' is not a valid position.");
             return 2;
@@ -48,7 +48,7 @@ public class RemoveAllByPosition extends AbstractCommand {
     }
 
 
-    public Position convertToStatusEnum(String argm) {
+    public Position convertToEnum(String argm) {
         try {
             return Position.valueOf(argm.trim().toUpperCase());
         } catch (IllegalArgumentException e) {

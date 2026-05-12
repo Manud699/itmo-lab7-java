@@ -1,5 +1,6 @@
 package server;
 
+import server.lifecycle.ShutdownCoordinator;
 import server.network.ServerAddress;
 import server.repository.DataBaseWorker;
 import server.repository.UserRepository;
@@ -36,6 +37,7 @@ public class SystemBootstrapper {
         initCommands();
         initNetworking();
         initLoadData();
+        initShutdownHook();
         return new RunnerAppServer(networkServer);
     }
 
@@ -81,5 +83,12 @@ public class SystemBootstrapper {
 
     private void initLoadData(){
         workerRepository.load();
+    }
+
+
+
+    private void initShutdownHook(){
+        var shutdownHook= new ShutdownCoordinator(databaseConnection, networkServer);
+        shutdownHook.pickShutDownHook();
     }
 }

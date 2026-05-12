@@ -34,7 +34,7 @@ public class RemoveHeadCommand extends AbstractCommand implements TableDisplayab
             return 2;
         }
 
-        console.println("Successfully removed the first worker from the collection:");
+        console.println("Successfully removed the first worker:");
         printWorkerTable(result.getValue(), console);
         return 0;
     }

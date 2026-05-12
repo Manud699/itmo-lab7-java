@@ -30,8 +30,11 @@ public class DataBaseWorker implements WorkerRepository {
     @Override
     public Result<Boolean> add(Worker worker) {
         String sql = "INSERT INTO worker (name, coordinate_x, coordinate_y, creation_date, salary, position, status, " +
-                "org_full_name, org_annual_turnover, org_employees_count, id_user) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, (SELECT id FROM users WHERE name = ?)) RETURNING id";
+                                            "org_full_name, org_annual_turnover, org_employees_count, id_user) " +
+                      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
+                      "(SELECT id FROM users WHERE name = ?)) " +
+                      "RETURNING id";
+
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
@@ -57,14 +60,16 @@ public class DataBaseWorker implements WorkerRepository {
             }
             return Result.failure("No ID was generated in the database.");
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Database error while trying to add worker", e);
-            return Result.failure("SQL error: " + e.getMessage());
+            logger.log(Level.SEVERE, "Database error while trying to add worker", e.getMessage());
+            return Result.failure("Database error while trying to add worker. Please try again later.");
         }
     }
 
 
     public void load() {
-        String requestSql = "SELECT U.name AS name_user ,W.* FROM worker W JOIN users U ON W.id_user = U.id";
+        String requestSql = "SELECT U.name AS name_user, W.* " +
+                            "FROM worker W " +
+                            "JOIN users U ON W.id_user = U.id";
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(requestSql);
              ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -105,7 +110,7 @@ public class DataBaseWorker implements WorkerRepository {
                 localWorkerRepository.add(worker);
             }
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error while trying to load data from the database");
+            logger.log(Level.SEVERE, "Error while trying to load data from the database. " + e.getMessage());
         }
     }
 
@@ -130,7 +135,7 @@ public class DataBaseWorker implements WorkerRepository {
             return Result.success();
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Failed to execute CLEAR query. " + e.getMessage());
-            return Result.failure("Failed to execute 'clear' query");
+            return Result.failure("Failed to execute 'clear' query. Please try again later.");
         }
     }
 
@@ -154,7 +159,7 @@ public class DataBaseWorker implements WorkerRepository {
             return Result.success(false);
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Failed to execute exist_by_id query. " + e.getMessage());
-            return Result.failure("Failed to execute query");
+            return Result.failure("Failed to execute query. Please try again later.");
         }
     }
 
@@ -173,7 +178,8 @@ public class DataBaseWorker implements WorkerRepository {
                 "org_full_name = ?, " +
                 "org_annual_turnover = ?, " +
                 "org_employees_count = ? " +
-                "WHERE id = ? AND id_user = (SELECT id FROM users WHERE name = ?)";
+                "WHERE id = ? AND id_user = " +
+                "(SELECT id FROM users WHERE name = ?)";
 
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(requestSql)) {
@@ -201,15 +207,18 @@ public class DataBaseWorker implements WorkerRepository {
             }
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Failed to execute update_by_id query. " + e.getMessage());
-            return Result.failure("Failed to execute update_by_id query.");
+            return Result.failure("Failed to execute 'update_by_id' query. Please try again later.");
         }
     }
 
 
     @Override
-    public synchronized Result<Boolean> removeById(long id) {
+    public  Result<Boolean> removeById(long id) {
         String nameUser = UserContext.get().name();
-        String requestSql = "DELETE FROM worker WHERE id = ? AND id_user = (SELECT id FROM users WHERE name = ?)";
+        String requestSql = "DELETE FROM worker " +
+                            "WHERE id = ? AND id_user = " +
+                            "(SELECT id FROM users " +
+                            "WHERE name = ?)";
 
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(requestSql)) {
@@ -223,13 +232,13 @@ public class DataBaseWorker implements WorkerRepository {
             return Result.success(false);
         } catch (SQLException e) {
             logger.log(Level.SEVERE, e.getMessage());
-            return Result.failure("Failed to execute 'remove_by_id' query.");
+            return Result.failure("Failed to execute 'remove_by_id' query. Please try again later.");
         }
     }
 
 
     @Override
-    public synchronized Result<Worker> getHead() {
+    public Result<Worker> getHead() {
         return localWorkerRepository.getHead();
     }
 
@@ -237,7 +246,10 @@ public class DataBaseWorker implements WorkerRepository {
     @Override
     public Result<Integer> removeAllByPosition(Position position) {
         String nameUser = UserContext.get().name();
-        String requestSql = "DELETE FROM worker WHERE position = ? AND id_user = (SELECT id FROM users WHERE name = ?)";
+        String requestSql = "DELETE FROM worker " +
+                            "WHERE position = ? AND id_user = " +
+                            "(SELECT id FROM users " +
+                            "WHERE name = ?)";
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(requestSql)) {
             preparedStatement.setString(1, position.name());
@@ -248,7 +260,7 @@ public class DataBaseWorker implements WorkerRepository {
             return Result.success(rowsDeleted);
         } catch (SQLException e) {
             logger.log(Level.SEVERE, e.getMessage());
-            return Result.failure("Failed to execute 'remove_all_by_position' task");
+            return Result.failure("Failed to execute 'remove_all_by_position' task. Please try again later.");
         }
     }
 
@@ -268,10 +280,13 @@ public class DataBaseWorker implements WorkerRepository {
     @Override
     public Result<Worker> removeHead() {
         String nameUser = UserContext.get().name();
-        String requestSql = "DELETE FROM worker WHERE id = (" +
-                "SELECT id FROM worker " +
-                "WHERE id_user = (SELECT id FROM users WHERE name = ?) " +
-                "ORDER BY name ASC LIMIT 1)";
+        String requestSql = "DELETE FROM worker " +
+                             "WHERE id = (" +
+                            "SELECT id FROM worker " +
+                            "WHERE id_user = " +
+                            "(SELECT id FROM users " +
+                            "WHERE name = ?) " +
+                            "ORDER BY name ASC LIMIT 1)";
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(requestSql)) {
             preparedStatement.setString(1, nameUser);
@@ -280,7 +295,7 @@ public class DataBaseWorker implements WorkerRepository {
                 return localWorkerRepository.removeHead();
             return Result.failure("You have no registered workers");
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Failed to execute 'remove_head' query. " + e.getMessage());
+            logger.log(Level.SEVERE, "Failed to execute 'remove_head' query. Please try again later. " + e.getMessage());
             return Result.failure(e.getMessage());
         }
     }
