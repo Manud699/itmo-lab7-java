@@ -5,6 +5,7 @@ import common.network.Result;
 import common.network.User;
 import common.security.HashSecurity;
 import common.security.SaltSecurity;
+import server.lifecycle.SqlAction;
 import server.storagedb.DatabaseConnection;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -22,87 +23,103 @@ public class UserRepository {
         this.databaseConnection = databaseConnection;
     }
 
-    public Response registrate(User user) {
-
-        if (isUserRegistrate(user.name()))
+    public Response register(User user) {
+        if (isUserRegistered(user.name()).getValue()) {
             return new Response(Result.failure("Username already exists. Please choose another one."));
-
-        String registrateSQL = "INSERT INTO users (name, password_hash, salt) VALUES (?, ?, ?)";
-
-
-        try (Connection connection = databaseConnection.getConnection();
-             PreparedStatement ps = connection.prepareStatement(registrateSQL)) {
-
-            String passwordPreHash = user.password();
-            String salt = SaltSecurity.getSalt();
-            String passwordSalt = HashSecurity.getHash(passwordPreHash + salt);
-
-            ps.setString(1, user.name());
-            ps.setString(2, passwordSalt);
-            ps.setString(3, salt);
-
-            int rowsAffected = ps.executeUpdate();
-
-            if (rowsAffected > 0)
-                return new Response(Result.success(true));
-
-            return new Response(Result.failure("Unknown failure while inserting into database"));
-        } catch (SQLException e) {
-            logger.log(Level.SEVERE, "SQL error while trying to register user", e);
-            return new Response(Result.failure("Internal server error: The database is temporarily unavailable. Please try again later."));
         }
+
+        var result = executeWithConnection(
+                connection -> {
+                    String registerSql = "INSERT INTO users (name, password_hash, salt) VALUES (?, ?, ?)";
+
+                    try (PreparedStatement ps = connection.prepareStatement(registerSql)) {
+                        String rawPassword = user.password();
+                        String salt = SaltSecurity.getSalt();
+                        String hashedPassword = HashSecurity.getHash(rawPassword + salt);
+
+                        ps.setString(1, user.name());
+                        ps.setString(2, hashedPassword);
+                        ps.setString(3, salt);
+
+                        int rowsAffected = ps.executeUpdate();
+
+                        if (rowsAffected > 0) {
+                            return Result.success(true);
+                        }
+                        return Result.failure("Unknown error occurred while creating the account.");
+                    }
+                });
+        return new Response(result);
     }
 
 
-    public Response logging(User user) {
-        if (!isUserRegistrate(user.name()))
+    public Response login(User user) {
+        if (!isUserRegistered(user.name()).getValue()) {
             return new Response(Result.failure("User does not exist: " + user.name()));
-
-        String selectUser = "SELECT password_hash, salt FROM users WHERE name = ?";
-        try (Connection connection = databaseConnection.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(selectUser)) {
-
-            preparedStatement.setString(1, user.name());
-
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                if (resultSet.next()) {
-
-                    String password_hash = resultSet.getString("password_hash");
-                    String salt = resultSet.getString("salt");
-
-                    String prePassword = user.password();
-                    String temporalPassword = HashSecurity.getHash(prePassword + salt);
-
-                    if (!temporalPassword.equals(password_hash))
-                        return new Response(Result.failure("Incorrect password"));
-
-                    return new Response(Result.success());
-                }
-                return new Response(Result.failure("Incorrect username"));
-            }
-        } catch (SQLException e) {
-            logger.log(Level.SEVERE, e.getMessage());
-            return new Response(Result.failure("Sorry, an error has occurred. Please try again."));
         }
+
+        var result = executeWithConnection(
+                connection -> {
+                    String selectUserSql = "SELECT password_hash, salt FROM users WHERE name = ?";
+                    try (PreparedStatement preparedStatement = connection.prepareStatement(selectUserSql)) {
+                        preparedStatement.setString(1, user.name());
+                        try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                            if (resultSet.next()) {
+                                String storedHash = resultSet.getString("password_hash");
+                                String storedSalt = resultSet.getString("salt");
+                                String rawPassword = user.password();
+
+                                String calculatedHash = HashSecurity.getHash(rawPassword + storedSalt);
+
+                                if (!calculatedHash.equals(storedHash)) {
+                                    return Result.failure("Incorrect password.");
+                                }
+                                return Result.success();
+                            }
+                            return Result.failure("User not found.");
+                        }
+                    }
+                });
+        return new Response(result);
     }
 
 
-    public boolean isUserRegistrate(String nameUser) {
-        String isUserSQL = "SELECT EXISTS (SELECT 1 FROM users WHERE name = ?)";
+    public Result<Boolean> isUserRegistered(String username) {
+        return executeWithConnection(
+                connection -> {
+                    String checkUserSql = "SELECT EXISTS (SELECT 1 FROM users WHERE name = ?)";
+                    try (PreparedStatement ps = connection.prepareStatement(checkUserSql)) {
+                        ps.setString(1, username);
+                        try (ResultSet resultSet = ps.executeQuery()) {
+                            if (resultSet.next()) {
+                                return Result.success(resultSet.getBoolean(1));
+                            }
+                        }
+                    }
+                    return Result.failure("An error occurred. Please try again.");
+                });
+    }
 
-        try (Connection connection = databaseConnection.getConnection();
-             PreparedStatement ps = connection.prepareStatement(isUserSQL)) {
 
-            ps.setString(1, nameUser);
+    private <T> Result<T> executeWithConnection(SqlAction<T> action) {
+        Connection connection = null;
+        try {
+            connection = databaseConnection.getConnection();
+            return action.execute(connection);
 
-            try (ResultSet resultSet = ps.executeQuery()) {
-                if (resultSet.next()) {
-                    return resultSet.getBoolean(1);
-                }
-            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.log(Level.SEVERE, "Thread interrupted while waiting for DB connection", e);
+            return Result.failure("Server is busy or shutting down. Please try again later.");
+
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error while checking user existence", e);
+            logger.log(Level.SEVERE, "SQL Error", e);
+            return Result.failure("Database task failed. Please try again later.");
+
+        } finally {
+            if (connection != null) {
+                databaseConnection.giveBackTheConnection(connection);
+            }
         }
-        return false;
     }
 }

@@ -32,7 +32,7 @@ public interface WorkerRepository {
 
     Result<String> getInfo();
 
-    void load();
+    Result<Void> load();
 
 
 }

@@ -46,6 +46,7 @@ public class SystemBootstrapper {
         DatabaseCredentials databaseCredentials = HandlerEnvironment.getDatabaseCredentials();
         DatabaseConnection.init(databaseCredentials);
         databaseConnection = DatabaseConnection.getInstance();
+        databaseConnection.initPoolConnection();
     }
 
 
@@ -54,6 +55,7 @@ public class SystemBootstrapper {
         this.commandRegistry = new CommandRegistry();
         this.workerRepository = new DataBaseWorker(databaseConnection, localWorkerRepository);
         this.userRepository = new UserRepository(databaseConnection);
+
     }
 
 
